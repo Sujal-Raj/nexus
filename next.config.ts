@@ -7,7 +7,7 @@ const nextConfig = {
         headers: [
           {
             key: "Access-Control-Allow-Origin",
-            value: "https://nexus-ruby-eta.vercel.app",
+            value: "http://localhost:3000/",
           },
           {
             key: "Access-Control-Allow-Methods",
