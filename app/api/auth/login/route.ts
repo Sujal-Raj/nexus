@@ -21,7 +21,11 @@ export async function POST(req: Request) {
 
   const token = generateToken({ id: user._id, role });
 
-  const res = Response.json({ message: "Logged in" });
+  const res = Response.json({ 
+    message: "Logged in",
+    userId: user._id.toString(),
+    role 
+  });
 
   res.headers.set(
     "Set-Cookie",

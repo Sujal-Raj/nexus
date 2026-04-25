@@ -4,11 +4,26 @@
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { api } from "@/services/api";
 import Link from "next/link";
+import { useEffect, useState } from "react";
 
 export default function Cart() {
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const userIdFromStorage = localStorage.getItem("userId");
+    setCurrentUserId(userIdFromStorage);
+  }, []);
+
   const { data, isLoading, refetch } = useQuery({
-    queryKey: ["cart"],
-    queryFn: () => api.get("/api/cart").then((res) => res.data),
+    queryKey: ["cart", currentUserId],
+    queryFn: async () => {
+      if (!currentUserId) {
+        return Promise.reject(new Error("User ID not available"));
+      }
+      const res = await api.get(`/api/cart?userId=${currentUserId}`);
+      return res.data;
+    },
+    enabled: !!currentUserId,
   });
 
   const { mutate: updateQuantity, isPending: isUpdating } = useMutation({
@@ -30,10 +45,11 @@ export default function Cart() {
     },
   });
 
-  const total = data?.items?.reduce(
-    (sum: number, item: any) => sum + item.product.price * item.quantity,
-    0
-  ) || 0;
+  const total =
+    data?.items?.reduce(
+      (sum: number, item: any) => sum + item.product.price * item.quantity,
+      0
+    ) || 0;
 
   if (isLoading) {
     return (
@@ -125,7 +141,7 @@ export default function Cart() {
                       </svg>
                     )}
                   </div>
-                  
+
                   <div className="flex-1">
                     <h3 className="text-lg font-semibold text-white">
                       {item.product.title}
@@ -148,7 +164,9 @@ export default function Cart() {
                     >
                       -
                     </button>
-                    <span className="text-white w-8 text-center">{item.quantity}</span>
+                    <span className="text-white w-8 text-center">
+                      {item.quantity}
+                    </span>
                     <button
                       onClick={() =>
                         updateQuantity({
@@ -182,8 +200,10 @@ export default function Cart() {
             {/* Order Summary */}
             <div className="lg:col-span-1">
               <div className="bg-white/5 backdrop-blur-lg rounded-xl border border-white/10 p-6 sticky top-8">
-                <h2 className="text-xl font-bold text-white mb-4">Order Summary</h2>
-                
+                <h2 className="text-xl font-bold text-white mb-4">
+                  Order Summary
+                </h2>
+
                 <div className="space-y-3 mb-6">
                   <div className="flex justify-between text-gray-300">
                     <span>Subtotal</span>
